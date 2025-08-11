@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calorie Tracker</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Image Calorie Tracker</h1>
+    <form id="upload-form">
+      <input type="file" id="file-input" accept="image/*" />
+      <button type="submit">Analyze</button>
+    </form>
+
+    <div id="preview"></div>
+
+    <div id="result" class="hidden">
+      <h2>Estimate</h2>
+      <p><strong>Backend:</strong> <span id="backend"></span></p>
+      <ul id="items"></ul>
+      <h3>Total: <span id="total"></span> kcal</h3>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('upload-form');
+    const fileInput = document.getElementById('file-input');
+    const preview = document.getElementById('preview');
+    const result = document.getElementById('result');
+    const backendEl = document.getElementById('backend');
+    const itemsEl = document.getElementById('items');
+    const totalEl = document.getElementById('total');
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.innerHTML = `<img src="${reader.result}" class="preview" />`
+      };
+      reader.readAsDataURL(file);
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = fileInput.files[0];
+      if (!file) return alert('Choose an image');
+      const fd = new FormData();
+      fd.append('file', file);
+      result.classList.add('hidden');
+      itemsEl.innerHTML = '';
+      backendEl.textContent = '';
+      totalEl.textContent = '';
+
+      const resp = await fetch('/api/analyze', { method: 'POST', body: fd });
+      if (!resp.ok) {
+        alert('Failed to analyze');
+        return;
+      }
+      const data = await resp.json();
+      backendEl.textContent = data.backend;
+      data.items.forEach(i => {
+        const li = document.createElement('li');
+        li.textContent = `${i.name} — ${i.quantity || '?'} — ${i.calories} kcal`;
+        itemsEl.appendChild(li);
+      });
+      totalEl.textContent = data.total_calories || 0;
+      result.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
