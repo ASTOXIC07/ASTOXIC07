@@ -25,7 +25,8 @@ xdg-open http://localhost:8000 || open http://localhost:8000
 ```
 
 ## Environment
-- `OPENAI_API_KEY` (optional): enables OpenAI vision-backed parsing
+- `VISION_BACKEND` (optional): set to `openai` to use OpenAI; default is `heuristic` (no external APIs)
+- `OPENAI_API_KEY` (optional): only used if `VISION_BACKEND=openai`
 
 ## Notes
 - This is not medical advice; estimates can be wrong.

@@ -5,6 +5,7 @@ from typing import List, Tuple
 from PIL import Image
 
 OPENAI_MODEL = os.getenv("OPENAI_VISION_MODEL", "gpt-4o-mini")
+VISION_BACKEND = os.getenv("VISION_BACKEND", "heuristic").strip().lower()
 
 
 def _image_to_base64(image: Image.Image) -> str:
@@ -58,31 +59,40 @@ async def _analyze_with_openai(image: Image.Image) -> List[dict]:
 
 
 async def _analyze_with_heuristic(image: Image.Image) -> List[dict]:
-    # Extremely naive color/shape-based guess to provide some baseline
-    # This is not accurate; it's just to keep the demo functional offline.
-    width, height = image.size
+    # Extremely naive color-based guess to provide some baseline offline.
     small = image.resize((64, 64))
     pixels = list(small.getdata())
     avg_r = sum(p[0] for p in pixels) / len(pixels)
     avg_g = sum(p[1] for p in pixels) / len(pixels)
     avg_b = sum(p[2] for p in pixels) / len(pixels)
+    avg_brightness = (avg_r + avg_g + avg_b) / 3.0
 
     items: List[dict] = []
-    # crude mapping
-    if avg_r > avg_g and avg_r > avg_b:
-        items.append({"name": "tomato-based dish", "quantity": "1 plate"})
-    if avg_g > avg_r and avg_g > avg_b:
+
+    # Heuristic: detect greens
+    if avg_g > avg_r + 10 and avg_g > avg_b + 10:
         items.append({"name": "salad", "quantity": "1 bowl"})
-    if avg_b > 140:
+
+    # Heuristic: detect tomato-ish
+    if avg_r > avg_g + 15 and avg_r > avg_b + 15:
+        items.append({"name": "tomato-based dish", "quantity": "1 cup"})
+
+    # Heuristic: bright/white -> rice
+    if avg_brightness > 200 and abs(avg_r - avg_g) < 20 and abs(avg_g - avg_b) < 20:
+        items.append({"name": "rice", "quantity": "1 cup"})
+
+    # Heuristic: blueberry-ish
+    if avg_b > 140 and avg_b > avg_r + 20:
         items.append({"name": "blueberry topping", "quantity": "2 tbsp"})
+
     if not items:
         items.append({"name": "mixed meal", "quantity": "1 serving"})
     return items
 
 
 async def analyze_meal(image: Image.Image) -> Tuple[str, List[dict]]:
-    use_openai = bool(os.getenv("OPENAI_API_KEY"))
-    if use_openai:
+    # Force heuristic unless explicitly requested
+    if VISION_BACKEND == "openai" and os.getenv("OPENAI_API_KEY"):
         try:
             items = await _analyze_with_openai(image)
             if items:
