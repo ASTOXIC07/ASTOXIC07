@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SpaceFarm AI</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="/static/styles.css"/>
+  </head>
+  <body>
+    <div id="app">
+      <div id="sidebar">
+        <h1>SpaceFarm AI</h1>
+        <p class="tagline">From Space Data to Sustainable Harvests</p>
+
+        <section>
+          <h2>Add Field</h2>
+          <form id="add-field-form">
+            <label>Name</label>
+            <input type="text" id="field-name" placeholder="My Farm" required />
+            <div class="row">
+              <div class="col">
+                <label>Latitude</label>
+                <input type="number" step="any" id="field-lat" placeholder="0.0" required />
+              </div>
+              <div class="col">
+                <label>Longitude</label>
+                <input type="number" step="any" id="field-lon" placeholder="0.0" required />
+              </div>
+            </div>
+            <button type="submit">Add Field</button>
+            <button type="button" id="recompute">Recompute Risks</button>
+          </form>
+          <p class="hint">Tip: Click on the map to auto-fill coordinates.</p>
+        </section>
+
+        <section>
+          <h2>Fields</h2>
+          <ul id="field-list"></ul>
+        </section>
+
+        <section>
+          <h2>Alerts</h2>
+          <ul id="alert-list"></ul>
+        </section>
+      </div>
+      <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/static/main.js"></script>
+  </body>
+</html>
